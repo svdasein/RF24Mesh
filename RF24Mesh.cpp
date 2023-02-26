@@ -91,7 +91,7 @@ uint8_t RF24Mesh::update()
         else if (type == MESH_ADDR_RELEASE) {
             uint16_t* fromAddr = (uint16_t*)network.frame_buffer;
             for (uint8_t i = 0; i < addrListTop; i++) {
-                if (addrList[i].address == *fromAddr) {
+                if (addrList[i].address == *fromAddr && !addrList[i].isStatic) {
                     addrList[i].address = 0;
                 }
             }
@@ -411,18 +411,19 @@ void RF24Mesh::setNodeID(uint8_t nodeID)
 
 void RF24Mesh::setStaticAddress(uint8_t nodeID, uint16_t address)
 {
-    setAddress(nodeID, address);
+    setAddress(nodeID, address,false,true);
 }
 
 /*****************************************************/
 
-void RF24Mesh::setAddress(uint8_t nodeID, uint16_t address, bool searchBy)
+void RF24Mesh::setAddress(uint8_t nodeID, uint16_t address, bool searchBy, bool isStatic)
 {
     // Look for the node in the list
     for (uint8_t i = 0; i < addrListTop; i++) {
         if (searchBy == false) {
             if (addrList[i].nodeID == nodeID) {
                 addrList[i].address = address;
+		addrList[i].isStatic = isStatic;
     #if defined(__linux) && !defined(__ARDUINO_X86__)
                 saveDHCP();
     #endif
@@ -445,6 +446,7 @@ void RF24Mesh::setAddress(uint8_t nodeID, uint16_t address, bool searchBy)
         addrList = (addrListStruct*)realloc(addrList, (addrListTop + MESH_MEM_ALLOC_SIZE) * sizeof(addrListStruct));
     }
     addrList[addrListTop].address = address;
+    addrList[addrListTop].isStatic = isStatic;
     addrList[addrListTop++].nodeID = nodeID; // Set the value AND increment Top without another line of code
     #if defined(__linux) && !defined(__ARDUINO_X86__)
     saveDHCP();
@@ -468,7 +470,7 @@ void RF24Mesh::loadDHCP()
 
     for (uint8_t i = 0; i < (length / sizeof(addrListStruct)); i++) {
         infile.read((char*)&tmpNode, sizeof(addrListStruct));
-        setAddress(tmpNode.nodeID, tmpNode.address);
+        setAddress(tmpNode.nodeID, tmpNode.address, tmpNode.isStatic);
     }
     infile.close();
     #endif

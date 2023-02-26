@@ -255,7 +255,7 @@ public:
      * @param searchBy Optional parameter. Default is search by @ref _nodeID "nodeID" and
      * set the address. True allows searching by address and setting @ref _nodeID "nodeID".
      */
-    void setAddress(uint8_t nodeID, uint16_t address, bool searchBy = false);
+    void setAddress(uint8_t nodeID, uint16_t address, bool searchBy = false, bool isStatic = false);
 
 #if !defined(MESH_NOMASTER)
     /**
@@ -308,6 +308,8 @@ public:
         uint8_t nodeID;
         /** @brief The logical address of an network node (child) */
         uint16_t address;
+	/** @brief Whether or not this address is statically assigned */
+	bool isStatic;
     } addrListStruct;
 
     /**
